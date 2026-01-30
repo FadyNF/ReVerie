@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../auth/auth_ui.dart';
 
 import 'package:reverie/views/doctor_match/screens/enter_doctor_code_screen.dart';
+import 'package:reverie/views/doctor_match/screens/onboarding_questions_screen.dart';
 
 class DoctorRequiredScreen extends StatelessWidget {
   const DoctorRequiredScreen({super.key});
@@ -97,7 +98,12 @@ class DoctorRequiredScreen extends StatelessWidget {
                 title: 'Find the Right Doctor',
                 subtitle: 'Answer a few questions to get\nmatched',
                 onTap: () {
-                  // TODO: navigate later
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const OnboardingQuestionsScreen(),
+                    ),
+                  );
                 },
               ),
 
