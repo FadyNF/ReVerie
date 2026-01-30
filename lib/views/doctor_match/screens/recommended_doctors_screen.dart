@@ -3,6 +3,7 @@ import 'package:reverie/views/doctor_match/models/recommended_doctor.dart';
 import 'package:reverie/views/doctor_match/widgets/recommended_doctor_card.dart';
 import 'package:reverie/views/doctor_match/widgets/step_progress_bar.dart';
 
+import 'package:reverie/views/doctor_match/screens/waiting_approval_screen.dart';
 class RecommendedDoctorsScreen extends StatelessWidget {
   // Later will pass backend results in this list.
   final List<RecommendedDoctor> doctors;
@@ -62,8 +63,22 @@ class RecommendedDoctorsScreen extends StatelessWidget {
                       child: RecommendedDoctorCard(
                         doctor: d,
                         onChoose: () {
-                          // for Later to call backend to "apply" / select doctor
-                          // For now just pop or navigate.
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => WaitingApprovalScreen(
+                                doctor: DoctorUiModel(
+                                  id: 'doc_1',
+                                  initials: 'DSC',
+                                  name: 'Dr. Sarah Chen',
+                                  specialty: 'Cognitive Specialist',
+                                  clinic: 'Memory Care Center',
+                                  rating: 4.9,
+                                ),
+                                stage: AppointmentStage.requestSent,
+                              ),
+                            ),
+                          );
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Selected: ${d.name}')),
                           );
