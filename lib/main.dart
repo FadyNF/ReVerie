@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'providers/auth_provider.dart';
 import 'views/splash_gate.dart';
+import 'views/doctor_match/entry_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +21,6 @@ Future<void> main() async {
 
   runApp(const ReVerieApp());
 }
-
 
 class ReVerieApp extends StatelessWidget {
   const ReVerieApp({super.key});
@@ -39,7 +39,8 @@ class ReVerieApp extends StatelessWidget {
           fontFamily: 'Inter',
           scaffoldBackgroundColor: Colors.white,
         ),
-        home: const SplashGate(),
+        // home: const SplashGate(),
+        home: const DoctorMatchEntry(),
       ),
     );
   }
