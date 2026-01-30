@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../auth/auth_ui.dart';
 
+import 'package:reverie/views/doctor_match/screens/enter_doctor_code_screen.dart';
+
 class DoctorRequiredScreen extends StatelessWidget {
   const DoctorRequiredScreen({super.key});
 
@@ -78,7 +80,12 @@ class DoctorRequiredScreen extends StatelessWidget {
                 title: 'Enter Doctor Code',
                 subtitle: 'If you have a code from your doctor',
                 onTap: () {
-                  // TODO: navigate later
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const EnterDoctorCodeScreen(),
+                    ),
+                  );
                 },
               ),
 
