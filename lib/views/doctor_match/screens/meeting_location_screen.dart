@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:reverie/views/auth/auth_ui.dart';
 import 'package:reverie/views/doctor_match/widgets/step_progress_bar.dart';
 
+import 'package:reverie/views/doctor_match/screens/recommended_doctors_screen.dart';
+import 'package:reverie/views/doctor_match/models/recommended_doctor.dart';
+
 // will Replace this later with a real implementation (geolocator / method channel).
 // For now it returns a dummy location string so the UI flow works.
 class LocationService {
@@ -350,9 +353,41 @@ class _MeetingLocationScreenState extends State<MeetingLocationScreen> {
                                 : null,
                           };
 
-                          // TODO later:
-                          // - send payload + previous answers to backend/provider
-                          // - Navigator.push(next screen...)
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => RecommendedDoctorsScreen(
+                                doctors: const [
+                                  RecommendedDoctor(
+                                    id: 'd1',
+                                    initials: 'DSC',
+                                    name: 'Dr. Sarah Chen',
+                                    specialty: 'Cognitive Specialist',
+                                    clinic: 'Memory Care Center',
+                                    rating: 4.9,
+                                    reasons: [
+                                      'Matches your availability',
+                                      'Calm approach',
+                                      'Arabic',
+                                    ],
+                                  ),
+                                  RecommendedDoctor(
+                                    id: 'd2',
+                                    initials: 'DMF',
+                                    name: 'Dr. Michael Foster',
+                                    specialty: 'Memory Care Specialist',
+                                    clinic: 'Sunnyvale Clinic',
+                                    rating: 4.8,
+                                    reasons: [
+                                      'Speaks Arabic',
+                                      'Video sessions',
+                                      'Nearby',
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
                         }
                       : null,
                   style: ElevatedButton.styleFrom(
