@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:reverie/views/auth/auth_ui.dart';
+import 'package:reverie/views/doctor_match/models/doctor_profile_model.dart';
+import 'package:reverie/views/doctor_match/screens/doctor_profile_screen.dart';
+import 'package:reverie/views/doctor_match/screens/recommended_doctors_screen.dart';
 import 'package:reverie/views/doctor_match/widgets/step_progress_bar.dart';
+import 'package:reverie/views/doctor_match/models/recommended_doctor.dart';
+// TODO: when you create it, import your doctors list screen:
+// import 'package:reverie/views/doctor_match/screens/doctors_list_screen.dart';
 
 class WaitingApprovalScreen extends StatelessWidget {
-  final DoctorUiModel doctor;
+  final RecommendedDoctor doctor;
 
   // later in backend stage will come from request table (pending/review/approved)
   final AppointmentStage stage;
@@ -31,7 +37,7 @@ class WaitingApprovalScreen extends StatelessWidget {
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {}, // disabled for now (you'll wire later)
         ),
       ),
       body: SafeArea(
@@ -151,8 +157,14 @@ class WaitingApprovalScreen extends StatelessWidget {
                     height: 54,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Later will navigate to doctor profile screen
-                        // Navigator.push(...DoctorProfileScreen(doctorId: doctor.id)...)
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DoctorProfileScreen(
+                              doctor: DoctorProfileModel.dummySarah(),
+                            ),
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AuthUI.primaryBlue,
@@ -228,7 +240,7 @@ class WaitingApprovalScreen extends StatelessWidget {
                   Navigator.pop(ctx); // close dialog
                   Navigator.pop(
                     context,
-                  ); // go back to Recommended Doctors screen
+                  ); // go back to RecommendedDoctorsScreen (which already has doctors list)
                 },
 
                 style: ElevatedButton.styleFrom(
@@ -248,8 +260,12 @@ class WaitingApprovalScreen extends StatelessWidget {
               child: OutlinedButton(
                 onPressed: () {
                   Navigator.pop(ctx); // close dialog
-                  // Later will navigate to browse doctors screen
-                  // Navigator.push(...BrowseDoctorsScreen())
+
+                  // When you have DoctorsListScreen ready:
+                  // Navigator.pushReplacement(
+                  //   context,
+                  //   MaterialPageRoute(builder: (_) => const DoctorsListScreen()),
+                  // );
                 },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.grey.shade800,
@@ -268,29 +284,10 @@ class WaitingApprovalScreen extends StatelessWidget {
   }
 }
 
-/// Dummy doctor model now, backend later
-class DoctorUiModel {
-  final String id;
-  final String initials;
-  final String name;
-  final String specialty;
-  final String clinic;
-  final double rating;
-
-  const DoctorUiModel({
-    required this.id,
-    required this.initials,
-    required this.name,
-    required this.specialty,
-    required this.clinic,
-    required this.rating,
-  });
-}
-
 enum AppointmentStage { requestSent, doctorReview, confirmation }
 
 class _DoctorSummaryCard extends StatelessWidget {
-  final DoctorUiModel doctor;
+  final RecommendedDoctor doctor;
 
   const _DoctorSummaryCard({required this.doctor});
 

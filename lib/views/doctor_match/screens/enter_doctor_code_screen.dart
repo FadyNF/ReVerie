@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:reverie/views/auth/auth_ui.dart';
+import 'package:reverie/views/doctor_match/models/doctor_profile_model.dart';
+import 'package:reverie/views/doctor_match/screens/doctor_profile_screen.dart';
 
 class EnterDoctorCodeScreen extends StatefulWidget {
   const EnterDoctorCodeScreen({super.key});
@@ -69,7 +71,7 @@ class _EnterDoctorCodeScreenState extends State<EnterDoctorCodeScreen> {
     });
 
     try {
-      // ✅ Later: replace this with Supabase / API call
+      // Later will replace this with Supabase / API call
       final exists = await DoctorCodeRepository.verifyDoctorCode(code);
 
       if (!mounted) return;
@@ -79,11 +81,13 @@ class _EnterDoctorCodeScreenState extends State<EnterDoctorCodeScreen> {
         return;
       }
 
-      // ✅ Success route (later you can navigate to the next step)
-      // For now just show a placeholder success.
-      ScaffoldMessenger.of(
+      Navigator.pushReplacement(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Doctor code accepted')));
+        MaterialPageRoute(
+          builder: (_) =>
+              DoctorProfileScreen(doctor: DoctorProfileModel.dummySarah()),
+        ),
+      );
     } finally {
       if (mounted) setState(() => _checking = false);
     }
