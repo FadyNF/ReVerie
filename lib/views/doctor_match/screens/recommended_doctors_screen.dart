@@ -7,6 +7,7 @@ import 'package:reverie/views/doctor_match/screens/waiting_approval_screen.dart'
 class RecommendedDoctorsScreen extends StatelessWidget {
   // Later will pass backend results in this list.
   final List<RecommendedDoctor> doctors;
+  static const routeName = '/recommended_doctors';
 
   const RecommendedDoctorsScreen({super.key, required this.doctors});
 
@@ -20,8 +21,9 @@ class RecommendedDoctorsScreen extends StatelessWidget {
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
-          onPressed: () {}, // disabled for now (you'll wire later)
+          onPressed: () => Navigator.pop(context),
         ),
+
         title: const Text(
           'Recommended for You',
           style: TextStyle(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:reverie/views/auth/auth_ui.dart';
 import 'package:reverie/views/doctor_match/models/doctor_profile_model.dart';
-import 'package:reverie/views/doctor_match/models/recommended_doctor.dart';
 import 'package:reverie/views/doctor_match/screens/doctor_profile_screen.dart';
 
 class FindDoctorScreen extends StatefulWidget {
@@ -105,7 +104,7 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
-          onPressed: () {}, // disabled for now as requested
+          onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Find a Doctor',

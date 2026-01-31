@@ -36,7 +36,7 @@ class WaitingApprovalScreen extends StatelessWidget {
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
-          onPressed: () {}, // disabled for now (you'll wire later)
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SafeArea(
@@ -236,10 +236,43 @@ class WaitingApprovalScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(ctx); // close dialog
-                  Navigator.pop(
+                  Navigator.pop(ctx); //close dialog first
+                  // dummy data for now change with backend retieval
+                  Navigator.push(
                     context,
-                  ); // go back to RecommendedDoctorsScreen (which already has doctors list)
+                    MaterialPageRoute(
+                      builder: (_) => RecommendedDoctorsScreen(
+                        doctors: const [
+                          RecommendedDoctor(
+                            id: 'd1',
+                            initials: 'DSC',
+                            name: 'Dr. Sarah Chen',
+                            specialty: 'Cognitive Specialist',
+                            clinic: 'Memory Care Center',
+                            rating: 4.9,
+                            reasons: [
+                              'Matches your availability',
+                              'Calm approach',
+                              'Arabic',
+                            ],
+                          ),
+                          RecommendedDoctor(
+                            id: 'd2',
+                            initials: 'DMF',
+                            name: 'Dr. Michael Foster',
+                            specialty: 'Memory Care Specialist',
+                            clinic: 'Sunnyvale Clinic',
+                            rating: 4.8,
+                            reasons: [
+                              'Speaks Arabic',
+                              'Video sessions',
+                              'Nearby',
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
                 },
 
                 style: ElevatedButton.styleFrom(

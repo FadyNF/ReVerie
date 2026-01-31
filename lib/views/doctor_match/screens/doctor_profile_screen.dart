@@ -19,7 +19,7 @@ class DoctorProfileScreen extends StatelessWidget {
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
-          onPressed: () {}, // disabled for now
+          onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Doctor Profile',
