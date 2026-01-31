@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:reverie/views/doctor_match/models/doctor_profile_model.dart';
+import 'package:reverie/views/doctor_match/screens/doctors_list_screen.dart';
 import '../../auth/auth_ui.dart';
 
 import 'package:reverie/views/doctor_match/screens/enter_doctor_code_screen.dart';
@@ -112,7 +114,14 @@ class DoctorRequiredScreen extends StatelessWidget {
               _BrowseCard(
                 background: Colors.grey.shade600,
                 onTap: () {
-                  // TODO: navigate later
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FindDoctorScreen(
+                        allDoctors: [DoctorProfileModel.dummySarah()],
+                      ),
+                    ),
+                  );
                 },
               ),
 

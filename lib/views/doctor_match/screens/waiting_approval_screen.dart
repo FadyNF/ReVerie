@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:reverie/views/auth/auth_ui.dart';
 import 'package:reverie/views/doctor_match/models/doctor_profile_model.dart';
 import 'package:reverie/views/doctor_match/screens/doctor_profile_screen.dart';
+import 'package:reverie/views/doctor_match/screens/doctors_list_screen.dart';
 import 'package:reverie/views/doctor_match/screens/recommended_doctors_screen.dart';
 import 'package:reverie/views/doctor_match/widgets/step_progress_bar.dart';
 import 'package:reverie/views/doctor_match/models/recommended_doctor.dart';
-// TODO: when you create it, import your doctors list screen:
-// import 'package:reverie/views/doctor_match/screens/doctors_list_screen.dart';
 
 class WaitingApprovalScreen extends StatelessWidget {
   final RecommendedDoctor doctor;
@@ -260,13 +259,19 @@ class WaitingApprovalScreen extends StatelessWidget {
               child: OutlinedButton(
                 onPressed: () {
                   Navigator.pop(ctx); // close dialog
-
-                  // When you have DoctorsListScreen ready:
-                  // Navigator.pushReplacement(
-                  //   context,
-                  //   MaterialPageRoute(builder: (_) => const DoctorsListScreen()),
-                  // );
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FindDoctorScreen(
+                        allDoctors: [
+                          DoctorProfileModel.dummySarah(),
+                          // add more dummy doctors here
+                        ],
+                      ),
+                    ),
+                  );
                 },
+
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.grey.shade800,
                   side: BorderSide(color: Colors.grey.shade400),
