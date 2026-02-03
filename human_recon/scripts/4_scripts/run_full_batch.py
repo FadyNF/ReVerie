@@ -1,0 +1,185 @@
+import os
+import sys
+import glob
+import numpy as np
+import trimesh
+import subprocess
+
+# --- CONFIG ---
+PIPELINE_ROOT = os.path.abspath(".")
+ICON_DIR = os.path.join(PIPELINE_ROOT, "3_models", "ICON")
+ICON_OUT = os.path.join(PIPELINE_ROOT, "1_stage", "icon", "icon-filter")
+DECA_OUT = os.path.join(PIPELINE_ROOT, "1_stage", "deca")
+MERGED_OUT = os.path.join(PIPELINE_ROOT, "1_stage", "merged")
+FINAL_OUT = os.path.join(PIPELINE_ROOT, "2_final")
+
+SMPL_MODEL = os.path.join(ICON_DIR, "data", "smpl_related", "models", "smpl", "SMPL_NEUTRAL.pkl")
+
+# Seam control (tune if needed)
+NECK_CUT_PAD = 0.002   # baseline cut offset
+OVERLAP = 0.003        # head overlaps body by 3 mm
+HEAD_TRIM = 0.0        # no extra shaving (avoid gaps)
+
+# add ICON to import path
+sys.path.append(ICON_DIR)
+from lib.smplx.body_models import SMPL
+
+os.makedirs(MERGED_OUT, exist_ok=True)
+os.makedirs(FINAL_OUT, exist_ok=True)
+
+def compute_neck_from_smpl(smpl_obj_path):
+    mesh = trimesh.load(smpl_obj_path, process=False)
+    verts = np.asarray(mesh.vertices)
+
+    smpl = SMPL(model_path=SMPL_MODEL, create_transl=False)
+    J_regressor = smpl.J_regressor.detach().cpu().numpy()
+    joints = J_regressor @ verts
+    neck = joints[12]  # SMPL neck index
+    return neck
+
+def extract_head(mesh, cut_y):
+    verts = mesh.vertices
+    faces = mesh.faces
+    keep = verts[:, 1] > cut_y
+    face_mask = np.all(keep[faces], axis=1)
+    head_faces = faces[face_mask]
+    unique_verts, new_faces = np.unique(head_faces.flatten(), return_inverse=True)
+    new_faces = new_faces.reshape(-1, 3)
+    head_verts = verts[unique_verts]
+    return trimesh.Trimesh(vertices=head_verts, faces=new_faces, process=False)
+
+def slice_keep_above(mesh, cut_y):
+    """
+    Keep geometry ABOVE the plane y = cut_y.
+    Uses true plane slicing (no jagged ring).
+    """
+    return trimesh.intersections.slice_mesh_plane(
+        mesh,
+        plane_normal=[0, 1, 0],
+        plane_origin=[0, cut_y, 0],
+        cap=False
+    )
+
+def slice_keep_below(mesh, cut_y):
+    """
+    Keep geometry BELOW the plane y = cut_y.
+    Flip normal to keep the opposite side.
+    """
+    return trimesh.intersections.slice_mesh_plane(
+        mesh,
+        plane_normal=[0, -1, 0],
+        plane_origin=[0, cut_y, 0],
+        cap=False
+    )
+
+def align_deca_to_icon_head(deca_head, icon_head):
+    """
+    Align DECA head to ICON head pose for texture projection only.
+    Geometry from ICON stays unchanged.
+    """
+    deca_head.apply_translation(icon_head.centroid - deca_head.centroid)
+
+    matrix, _, _ = trimesh.registration.icp(
+        deca_head.vertices,
+        icon_head.vertices,
+        scale=False,
+        reflection=False,
+        max_iterations=80
+    )
+    deca_head.apply_transform(matrix)
+    return deca_head
+
+def texture_mesh(sample):
+    mesh = os.path.join(MERGED_OUT, f"{sample}_merged.obj")
+
+    # Use ICON-aligned input image
+    image = os.path.join(ICON_OUT, "png", f"{sample}_icon_input.png")
+    if not os.path.exists(image):
+        raise FileNotFoundError(f"Missing ICON input image: {image}")
+
+    cam = os.path.join(ICON_OUT, "obj", f"{sample}_cam_params.npz")
+    out_dir = FINAL_OUT
+    out_name = f"{sample}_textured.glb"
+
+    cmd = [
+        "python", "4_scripts/texture_with_calib.py",
+        "--mesh", mesh,
+        "--image", image,
+        "--cam", cam,
+        "--out_dir", out_dir,
+        "--out_name", out_name
+    ]
+    subprocess.run(cmd, check=True)
+
+def main():
+    smpl_files = glob.glob(os.path.join(ICON_OUT, "obj", "*_smpl.obj"))
+
+    if not smpl_files:
+        print("❌ No SMPL meshes found in ICON output.")
+        return
+
+    for smpl_obj in smpl_files:
+        sample = os.path.basename(smpl_obj).replace("_smpl.obj", "")
+        print(f"\n=== Processing {sample} ===")
+
+        deca_head_path = os.path.join(DECA_OUT, sample, f"{sample}_detail.obj")
+        icon_mesh_path = os.path.join(ICON_OUT, "obj", f"{sample}_refine.obj")
+
+        if not os.path.exists(deca_head_path):
+            print(f"⚠️ Missing DECA head: {deca_head_path}")
+            continue
+        if not os.path.exists(icon_mesh_path):
+            print(f"⚠️ Missing ICON mesh: {icon_mesh_path}")
+            continue
+
+        # compute neck (prefer ICON neck)
+        neck_path = os.path.join(ICON_OUT, "obj", f"{sample}_neck.npy")
+        if os.path.exists(neck_path):
+            neck = np.load(neck_path)
+        else:
+            neck = compute_neck_from_smpl(smpl_obj)
+
+        # load ICON mesh
+        icon_mesh = trimesh.load(icon_mesh_path, process=False)
+
+        # load ICON head (for cut reference)
+        icon_head_path = os.path.join(ICON_OUT, "obj", f"{sample}_icon_head.obj")
+        if os.path.exists(icon_head_path):
+            icon_head = trimesh.load(icon_head_path, process=False)
+        else:
+            # fallback: extract head from ICON recon
+            recon_path = os.path.join(ICON_OUT, "obj", f"{sample}_recon.obj")
+            if not os.path.exists(recon_path):
+                print(f"⚠️ Missing ICON recon: {recon_path}")
+                continue
+            recon_mesh = trimesh.load(recon_path, process=False)
+            icon_head = extract_head(recon_mesh, neck[1] + 0.02)
+
+        # align DECA head to ICON head pose (optional; kept for pipeline consistency)
+        deca_head = trimesh.load(deca_head_path, process=False)
+        deca_head = align_deca_to_icon_head(deca_head, icon_head)
+
+        # --- CUT STRATEGY ---
+        head_base_y = np.percentile(icon_head.vertices[:, 1], 5)
+        cut_y = head_base_y + NECK_CUT_PAD
+
+        # Body from icon_mesh (below cut_y)
+        icon_body = slice_keep_below(icon_mesh, cut_y)
+
+        # Head from icon_mesh, keep slightly lower for overlap (hide seam)
+        icon_head_clean = slice_keep_above(icon_mesh, cut_y - OVERLAP + HEAD_TRIM)
+
+        merged = trimesh.util.concatenate([icon_body, icon_head_clean])
+        merged_path = os.path.join(MERGED_OUT, f"{sample}_merged.obj")
+        merged.export(merged_path)
+        print("✅ Merged:", merged_path)
+
+        # texture
+        try:
+            texture_mesh(sample)
+            print("✅ Textured:", os.path.join(FINAL_OUT, f"{sample}_textured.glb"))
+        except Exception as e:
+            print("⚠️ Texture failed:", e)
+
+if __name__ == "__main__":
+    main()

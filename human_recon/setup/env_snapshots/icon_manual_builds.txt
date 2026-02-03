@@ -1,0 +1,7 @@
+
+kaolin (git clone v0.9.1) -> python setup.py develop
+
+tinyobjloader (git clone --recursive) -> pip install .
+
+neural_voxelization_layer -> python setup.py install
+
