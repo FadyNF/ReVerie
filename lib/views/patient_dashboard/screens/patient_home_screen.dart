@@ -5,7 +5,9 @@ import '../widgets/section_title.dart';
 import 'notifications_screen.dart';
 
 class PatientHomeScreen extends StatelessWidget {
-  const PatientHomeScreen({super.key});
+  const PatientHomeScreen({super.key, this.onNav});
+
+  final void Function(int index)? onNav;
 
   // === Mockup Tokens (do NOT depend on global Theme) ===
   static const Color bg = Colors.white;
@@ -31,212 +33,211 @@ class PatientHomeScreen extends StatelessWidget {
     const lastSessionTitle = "Family Gathering 2025";
     const hasUnreadNotifications = true;
 
-return ColoredBox(
-  color: const Color(0xFFFFFFFF), // ✅ exact mockup background shade
-  child: Scaffold(
-    backgroundColor: Colors.transparent, // ✅ prevents theme/surface tint
-    body: SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ===== Header =====
-            Row(
+    return ColoredBox(
+      color: const Color(0xFFFFFFFF), // ✅ exact mockup background shade
+      child: Scaffold(
+        backgroundColor: Colors.transparent, // ✅ prevents theme/surface tint
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        "Welcome back",
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          color: textPrimary,
-                          height: 1.1,
-                        ),
-                      ),
-                      SizedBox(height: 6),
-                      Text(
-                        "How are you feeling today?",
-                        style: TextStyle(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w500,
-                          color: textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Bell
-                Stack(
+                // ===== Header =====
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    InkWell(
-                      borderRadius: BorderRadius.circular(999),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                        );
-                      },
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: border),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: const Icon(Icons.notifications_none_rounded, color: textPrimary),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text(
+                            "Welcome back",
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: textPrimary,
+                              height: 1.1,
+                            ),
+                          ),
+                          SizedBox(height: 6),
+                          Text(
+                            "How are you feeling today?",
+                            style: TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w500,
+                              color: textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    if (hasUnreadNotifications)
-                      Positioned(
-                        right: 8,
-                        top: 8,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: blue,
-                            shape: BoxShape.circle,
+                    // Bell
+                    Stack(
+                      children: [
+                        InkWell(
+                          borderRadius: BorderRadius.circular(999),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                            );
+                          },
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(color: border),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: const Icon(Icons.notifications_none_rounded, color: textPrimary),
                           ),
                         ),
-                      ),
+                        if (hasUnreadNotifications)
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: blue,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
+
+                const SizedBox(height: 18),
+
+                // ===== Top quick cards =====
+                Row(
+                  children: const [
+                    Expanded(
+                      child: QuickActionCard(
+                        backgroundColor: cardBlue,
+                        icon: Icons.person_outline_rounded,
+                        title: "Dr. Sarah Chen",
+                        subtitle: "Your doctor",
+                      ),
+                    ),
+                    SizedBox(width: 14),
+                    Expanded(
+                      child: QuickActionCard(
+                        backgroundColor: cardBlue,
+                        icon: Icons.description_outlined,
+                        title: "MMSE Checkup",
+                        subtitle: "Assessment",
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // ===== Start VR CTA =====
+                _StartVrCard(
+                  onTap: () {
+                    // TODO PR05/SR05-SR08
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
+                // ===== Mini cards row (exact mockup layout) =====
+                Row(
+                  children: [
+                    Expanded(
+                      child: _MiniCard(
+                        icon: Icons.description_outlined,
+                        title: "Activities",
+                        subtitle: "Recommended",
+                        subtitleBlueUnderline: true,
+                        onTap: () => onNav?.call(2), // ✅ no routes
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: _MiniCard(
+                        icon: Icons.description_outlined,
+                        title: "History",
+                        subtitle: "All sessions",
+                        onTap: () => onNav?.call(1), // ✅ no routes
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: _MiniCard(
+                        icon: Icons.person_outline_rounded,
+                        title: "Profile",
+                        subtitle: "",
+                        onTap: () => onNav?.call(3), // ✅ no routes
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 18),
+
+                // ===== Next session header =====
+                Row(
+                  children: const [
+                    Expanded(child: SectionTitle(title: "NEXT SESSION")),
+                    Text(
+                      "Today",
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                NextSessionCard(
+                  date: nextSessionDate,
+                  doctorName: doctorName,
+                  doctorRole: doctorRole,
+                  onTap: () {
+                    // TODO PR08/SR13
+                  },
+                ),
+
+                const SizedBox(height: 18),
+
+                // ===== Last session header =====
+                Row(
+                  children: const [
+                    Expanded(child: SectionTitle(title: "LAST SESSION")),
+                    Text(
+                      "1w ago",
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                _LastSessionCard(
+                  title: lastSessionTitle,
+                  onTap: () {
+                    // TODO SR09/PR06
+                  },
+                ),
               ],
             ),
-
-            const SizedBox(height: 18),
-
-            // ===== Top quick cards =====
-            Row(
-              children: const [
-                Expanded(
-                  child: QuickActionCard(
-                    backgroundColor: cardBlue,
-                    icon: Icons.person_outline_rounded,
-                    title: "Dr. Sarah Chen",
-                    subtitle: "Your doctor",
-                  ),
-                ),
-                SizedBox(width: 14),
-                Expanded(
-                  child: QuickActionCard(
-                    backgroundColor: cardBlue,
-                    icon: Icons.description_outlined,
-                    title: "MMSE Checkup",
-                    subtitle: "Assessment",
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // ===== Start VR CTA =====
-            _StartVrCard(
-              onTap: () {
-                // TODO PR05/SR05-SR08
-              },
-            ),
-
-            const SizedBox(height: 16),
-
-            // ===== Mini cards row (exact mockup layout) =====
-            Row(
-              children: [
-                Expanded(
-                  child: _MiniCard(
-                    icon: Icons.description_outlined,
-                    title: "Activities",
-                    subtitle: "Recommended",
-                    subtitleBlueUnderline: true,
-                    onTap: () => Navigator.of(context).pushNamed('/patient/activities'),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: _MiniCard(
-                    icon: Icons.description_outlined,
-                    title: "History",
-                    subtitle: "All sessions",
-                    onTap: () => Navigator.of(context).pushNamed('/patient/history'),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: _MiniCard(
-                    icon: Icons.person_outline_rounded,
-                    title: "Profile",
-                    subtitle: "",
-                    onTap: () => Navigator.of(context).pushNamed('/patient/profile'),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 18),
-
-            // ===== Next session header =====
-            Row(
-              children: const [
-                Expanded(child: SectionTitle(title: "NEXT SESSION")),
-                Text(
-                  "Today",
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: textSecondary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            NextSessionCard(
-              date: nextSessionDate,
-              doctorName: doctorName,
-              doctorRole: doctorRole,
-              onTap: () {
-                // TODO PR08/SR13
-              },
-            ),
-
-            const SizedBox(height: 18),
-
-            // ===== Last session header =====
-            Row(
-              children: const [
-                Expanded(child: SectionTitle(title: "LAST SESSION")),
-                Text(
-                  "1w ago",
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: textSecondary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            _LastSessionCard(
-              title: lastSessionTitle,
-              onTap: () {
-                // TODO SR09/PR06
-              },
-            ),
-          ],
+          ),
         ),
       ),
-    ),
-  ),
-);
-
+    );
   }
 }
 
@@ -331,7 +332,7 @@ class _MiniCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 100), // <- stable on Android
+          constraints: const BoxConstraints(minHeight: 100), // stable on Android
           child: Ink(
             padding: const EdgeInsets.fromLTRB(10, 12, 10, 10),
             decoration: BoxDecoration(
@@ -381,7 +382,7 @@ class _MiniCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
-                      height: 1.1, // <- helps Android underline spacing
+                      height: 1.1,
                       color: subtitleBlueUnderline ? PatientHomeScreen.blue : PatientHomeScreen.textSecondary,
                       decoration: subtitleBlueUnderline ? TextDecoration.underline : TextDecoration.none,
                       decorationThickness: 1.2,
@@ -398,7 +399,6 @@ class _MiniCard extends StatelessWidget {
   }
 }
 
-
 class _LastSessionCard extends StatelessWidget {
   const _LastSessionCard({required this.title, required this.onTap});
   final String title;
@@ -410,7 +410,7 @@ class _LastSessionCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       onTap: onTap,
       child: Ink(
-        width: double.infinity, // ✅ full width
+        width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -429,7 +429,6 @@ class _LastSessionCard extends StatelessWidget {
                 ),
               ),
             ),
-            // No chevron (mockup has none) but keep spacing balanced:
             const SizedBox(width: 6),
           ],
         ),
