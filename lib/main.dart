@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
+import 'providers/doctor_dashboard_provider.dart';
 import 'providers/auth_provider.dart';
 import 'views/splash_gate.dart';
 import 'views/doctor_match/entry_page.dart';
+import 'views/doctor_dashboard/doctor_dashboard_shell.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,19 +31,22 @@ class ReVerieApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final client = Supabase.instance.client;
 
-    return ChangeNotifierProvider(
-      create: (_) => AuthProvider(client),
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'ReVerie',
-        theme: ThemeData(
-          useMaterial3: true,
-          fontFamily: 'Inter',
-          scaffoldBackgroundColor: Colors.white,
-        ),
-        // home: const SplashGate(),
-        home: const DoctorMatchEntry(),
-      ),
-    );
+    return MultiProvider(
+  providers: [
+    ChangeNotifierProvider(create: (_) => AuthProvider(client)),
+    ChangeNotifierProvider(create: (_) => DoctorDashboardProvider()),
+  ],
+  child: MaterialApp(
+    debugShowCheckedModeBanner: false,
+    title: 'ReVerie',
+    theme: ThemeData(
+      useMaterial3: true,
+      fontFamily: 'Inter',
+      scaffoldBackgroundColor: Colors.white,
+    ),
+    home: const DoctorDashboardShell(),
+  ),
+);
+
   }
 }
