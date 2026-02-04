@@ -9,8 +9,9 @@ class PatientHomeScreen extends StatelessWidget {
 
   final void Function(int index)? onNav;
 
-  // === Mockup Tokens (do NOT depend on global Theme) ===
-  static const Color bg = Colors.white;
+  // === ReVerie UI Tokens (LOCAL, no main.dart/theme dependency) ===
+  // Use this SAME color in Activities / History / Profile to match mockup.
+  static const Color pageBg = Color(0xFFF9FAFB); // soft off-white like mock cards background
 
   static const Color textPrimary = Color(0xFF111827);
   static const Color textSecondary = Color(0xFF6B7280);
@@ -34,9 +35,9 @@ class PatientHomeScreen extends StatelessWidget {
     const hasUnreadNotifications = true;
 
     return ColoredBox(
-      color: const Color(0xFFFFFFFF), // ✅ exact mockup background shade
+      color: pageBg, // ✅ shared background token
       child: Scaffold(
-        backgroundColor: Colors.transparent, // ✅ prevents theme/surface tint
+        backgroundColor: Colors.transparent, // ✅ prevents Material3 surface tint
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
@@ -72,6 +73,7 @@ class PatientHomeScreen extends StatelessWidget {
                         ],
                       ),
                     ),
+
                     // Bell
                     Stack(
                       children: [
@@ -148,7 +150,7 @@ class PatientHomeScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // ===== Mini cards row (exact mockup layout) =====
+                // ===== Mini cards row (switch tabs, no routes) =====
                 Row(
                   children: [
                     Expanded(
@@ -157,7 +159,7 @@ class PatientHomeScreen extends StatelessWidget {
                         title: "Activities",
                         subtitle: "Recommended",
                         subtitleBlueUnderline: true,
-                        onTap: () => onNav?.call(2), // ✅ no routes
+                        onTap: () => onNav?.call(2),
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -166,7 +168,7 @@ class PatientHomeScreen extends StatelessWidget {
                         icon: Icons.description_outlined,
                         title: "History",
                         subtitle: "All sessions",
-                        onTap: () => onNav?.call(1), // ✅ no routes
+                        onTap: () => onNav?.call(1),
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -175,7 +177,7 @@ class PatientHomeScreen extends StatelessWidget {
                         icon: Icons.person_outline_rounded,
                         title: "Profile",
                         subtitle: "",
-                        onTap: () => onNav?.call(3), // ✅ no routes
+                        onTap: () => onNav?.call(3),
                       ),
                     ),
                   ],
@@ -332,11 +334,11 @@ class _MiniCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 100), // stable on Android
+          constraints: const BoxConstraints(minHeight: 100),
           child: Ink(
             padding: const EdgeInsets.fromLTRB(10, 12, 10, 10),
             decoration: BoxDecoration(
-              color: const Color(0xFFF9FAFB),
+              color: Colors.white, // ✅ cards sit on pageBg
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: PatientHomeScreen.border),
               boxShadow: const [
@@ -383,8 +385,11 @@ class _MiniCard extends StatelessWidget {
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
                       height: 1.1,
-                      color: subtitleBlueUnderline ? PatientHomeScreen.blue : PatientHomeScreen.textSecondary,
-                      decoration: subtitleBlueUnderline ? TextDecoration.underline : TextDecoration.none,
+                      color: subtitleBlueUnderline
+                          ? PatientHomeScreen.blue
+                          : PatientHomeScreen.textSecondary,
+                      decoration:
+                          subtitleBlueUnderline ? TextDecoration.underline : TextDecoration.none,
                       decorationThickness: 1.2,
                     ),
                   )

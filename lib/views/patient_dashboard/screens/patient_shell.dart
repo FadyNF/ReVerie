@@ -15,20 +15,27 @@ class PatientShell extends StatefulWidget {
 class _PatientShellState extends State<PatientShell> {
   int _index = 0;
 
+  late final List<Widget> _tabs = [
+    PatientHomeScreen(
+      onNav: (i) => setState(() => _index = i), // mini cards switch tabs
+    ),
+    SessionHistoryScreen(
+      onBackToHome: () => setState(() => _index = 0),
+    ),
+    const Placeholder(),
+
+    //ActivitiesScreen(
+      //onBackToHome: () => setState(() => _index = 0),
+    //),
+    ProfileScreen(
+      onBackToHome: () => setState(() => _index = 0),
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    // ✅ must be inside build so PatientHomeScreen can receive setState callback
-    final tabs = <Widget>[
-      PatientHomeScreen(
-        onNav: (i) => setState(() => _index = i), // ✅ mini cards switch tabs
-      ),
-      const Placeholder(), // Sessions
-      const Placeholder(), // Activities // index 2
-      const ProfileScreen(), // index 3
-    ];
-
     return Scaffold(
-      body: tabs[_index],
+      body: _tabs[_index],
 
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(

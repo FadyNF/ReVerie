@@ -7,7 +7,11 @@ import 'package:flutter/material.dart';
 /// - Cards + section headers
 /// - Backend-ready via ProfileVM (swap with provider/supabase later)
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.onBackToHome});
+
+  /// When used inside PatientShell, pass:
+  /// onBackToHome: () => setState(() => _index = 0)
+  final VoidCallback? onBackToHome;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -24,116 +28,141 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: ProfileTokens.bg,
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
-          children: [
-            // Title + subtitle (left aligned like mock)
-            const Text(
-              "Profile",
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w900,
-                color: ProfileTokens.textPrimary,
-                height: 1.05,
+    return ColoredBox(
+      color: ProfileTokens.bg, // ✅ forces the true background behind everything
+      child: Scaffold(
+        backgroundColor: Colors.transparent, // ✅ no theme tint overlay
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
+            children: [
+              // ===== Top row: back + title (match other screens) =====
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (widget.onBackToHome != null)
+                    IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: ProfileTokens.textPrimary,
+                        size: 20,
+                      ),
+                      onPressed: widget.onBackToHome,
+                      splashRadius: 20,
+                    )
+                  else
+                    const SizedBox(width: 12), // keep alignment when no back
+
+                  const SizedBox(width: 4),
+                  const Expanded(
+                    child: Text(
+                      "Profile",
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w900,
+                        color: ProfileTokens.textPrimary,
+                        height: 1.05,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              "Manage your ReVerie experience",
-              style: TextStyle(
-                fontSize: 14.5,
-                fontWeight: FontWeight.w500,
-                color: ProfileTokens.textSecondary,
+
+              const SizedBox(height: 6),
+              const Text(
+                "Manage your ReVerie experience",
+                style: TextStyle(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w500,
+                  color: ProfileTokens.textSecondary,
+                ),
               ),
-            ),
 
-            const SizedBox(height: 14),
+              const SizedBox(height: 14),
 
-            _ProfileHeaderCard(
-              name: vm.name,
-              role: vm.roleLabel,
-              onEditProfile: vm.onEditProfile,
-            ),
+              _ProfileHeaderCard(
+                name: vm.name,
+                role: vm.roleLabel,
+                onEditProfile: vm.onEditProfile,
+              ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            const _SectionTitle("ACCESSIBILITY"),
-            const SizedBox(height: 8),
-            _Card(
-              children: [
-                _RowItem(
-                  icon: Icons.visibility_outlined,
-                  title: "Display & Text Size",
-                  subtitle: "Adjust for comfort",
-                  onTap: vm.onDisplayTextSize,
-                ),
-                const _Divider(),
-                _SwitchRow(
-                  icon: Icons.notifications_none_rounded,
-                  title: "Gentle Reminders",
-                  subtitle: "Session prompts",
-                  value: vm.gentleReminders,
-                  onChanged: (v) {
-                    setState(() => vm = vm.copyWith(gentleReminders: v));
-                    vm.onToggleGentleReminders?.call(v);
-                  },
-                ),
-              ],
-            ),
+              const _SectionTitle("ACCESSIBILITY"),
+              const SizedBox(height: 8),
+              _Card(
+                children: [
+                  _RowItem(
+                    icon: Icons.visibility_outlined,
+                    title: "Display & Text Size",
+                    subtitle: "Adjust for comfort",
+                    onTap: vm.onDisplayTextSize,
+                  ),
+                  const _Divider(),
+                  _SwitchRow(
+                    icon: Icons.notifications_none_rounded,
+                    title: "Gentle Reminders",
+                    subtitle: "Session prompts",
+                    value: vm.gentleReminders,
+                    onChanged: (v) {
+                      setState(() => vm = vm.copyWith(gentleReminders: v));
+                      vm.onToggleGentleReminders?.call(v);
+                    },
+                  ),
+                ],
+              ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            const _SectionTitle("PRIVACY & SECURITY"),
-            const SizedBox(height: 8),
-            _Card(
-              children: [
-                _RowItem(
-                  icon: Icons.lock_outline_rounded,
-                  title: "Privacy Settings",
-                  subtitle: "Your data stays private",
-                  onTap: vm.onPrivacySettings,
-                ),
-                const _Divider(),
-                _RowItem(
-                  icon: Icons.group_outlined,
-                  title: "Connected Caregivers",
-                  subtitle: vm.connectedCaregiversLabel,
-                  onTap: vm.onConnectedCaregivers,
-                ),
-              ],
-            ),
+              const _SectionTitle("PRIVACY & SECURITY"),
+              const SizedBox(height: 8),
+              _Card(
+                children: [
+                  _RowItem(
+                    icon: Icons.lock_outline_rounded,
+                    title: "Privacy Settings",
+                    subtitle: "Your data stays private",
+                    onTap: vm.onPrivacySettings,
+                  ),
+                  const _Divider(),
+                  _RowItem(
+                    icon: Icons.group_outlined,
+                    title: "Connected Caregivers",
+                    subtitle: vm.connectedCaregiversLabel,
+                    onTap: vm.onConnectedCaregivers,
+                  ),
+                ],
+              ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            const _SectionTitle("SUPPORT"),
-            const SizedBox(height: 8),
-            _Card(
-              children: [
-                _RowItem(
-                  icon: Icons.help_outline_rounded,
-                  title: "Help & Support",
-                  subtitle: "We’re here for you",
-                  onTap: vm.onHelpSupport,
-                ),
-                const _Divider(),
-                _RowItem(
-                  icon: Icons.favorite_border_rounded,
-                  title: "About ReVerie",
-                  subtitle: "Version ${vm.appVersion}",
-                  onTap: vm.onAbout,
-                ),
-              ],
-            ),
+              const _SectionTitle("SUPPORT"),
+              const SizedBox(height: 8),
+              _Card(
+                children: [
+                  _RowItem(
+                    icon: Icons.help_outline_rounded,
+                    title: "Help & Support",
+                    subtitle: "We’re here for you",
+                    onTap: vm.onHelpSupport,
+                  ),
+                  const _Divider(),
+                  _RowItem(
+                    icon: Icons.favorite_border_rounded,
+                    title: "About ReVerie",
+                    subtitle: "Version ${vm.appVersion}",
+                    onTap: vm.onAbout,
+                  ),
+                ],
+              ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            _SignOutCard(onTap: vm.onSignOut),
+              _SignOutCard(onTap: vm.onSignOut),
 
-            const SizedBox(height: 8),
-          ],
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
       ),
     );
