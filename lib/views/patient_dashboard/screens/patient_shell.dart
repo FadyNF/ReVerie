@@ -16,21 +16,11 @@ class _PatientShellState extends State<PatientShell> {
   int _index = 0;
 
   late final List<Widget> _tabs = [
-    PatientHomeScreen(
-      onNav: (i) => setState(() => _index = i), // mini cards switch tabs
-    ),
-    SessionHistoryScreen(
-      onBackToHome: () => setState(() => _index = 0),
-    ),
-    const Placeholder(),
-
-    //ActivitiesScreen(
-      //onBackToHome: () => setState(() => _index = 0),
-    //),
-    ProfileScreen(
-      onBackToHome: () => setState(() => _index = 0),
-    ),
-  ];
+  PatientHomeScreen(onNav: (i) => setState(() => _index = i)),
+  SessionHistoryScreen(onBackToHome: () => setState(() => _index = 0)),
+  ActivitiesScreen(onBackToHome: () => setState(() => _index = 0)),
+  ProfileScreen(onBackToHome: () => setState(() => _index = 0)),
+];
 
   @override
   Widget build(BuildContext context) {
