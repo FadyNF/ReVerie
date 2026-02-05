@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'admission_code.dart';
 
 class DoctorProfileScreen extends StatelessWidget {
   const DoctorProfileScreen({super.key});
@@ -72,7 +72,12 @@ class DoctorProfileScreen extends StatelessWidget {
                   ),
                   title: "Priority Admission Code",
                   subtitle: "Share temporary access code",
-                  onTap: vm.onPriorityCode,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PriorityAdmissionCodeScreen()),
+                    );
+                  },
                   showChevron: true,
                 ),
               ),
@@ -161,7 +166,6 @@ class DoctorProfileVM {
   final String doctorId;
   final String appVersion;
 
-  final VoidCallback? onPriorityCode;
   final VoidCallback? onSettings;
   final VoidCallback? onHelp;
   final VoidCallback? onSignOut;
@@ -175,7 +179,6 @@ class DoctorProfileVM {
     required this.totalSessions,
     required this.doctorId,
     required this.appVersion,
-    required this.onPriorityCode,
     required this.onSettings,
     required this.onHelp,
     required this.onSignOut,
@@ -190,7 +193,6 @@ class DoctorProfileVM {
         totalSessions: 156,
         doctorId: "DR-SC-2024-7891",
         appVersion: "1.0.0",
-        onPriorityCode: null,
         onSettings: null,
         onHelp: null,
         onSignOut: null,
