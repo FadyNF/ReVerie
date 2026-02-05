@@ -42,7 +42,7 @@ class ReVerieApp extends StatelessWidget {
           scaffoldBackgroundColor: Colors.white,
         ),
         // home: const SplashGate(),
-        // home: const DoctorProfileScreen(),
+        home: const DoctorProfileScreen(),
       ),
     );
   }
