@@ -6,6 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'providers/auth_provider.dart';
 import 'views/splash_gate.dart';
 import 'views/doctor_match/entry_page.dart';
+import 'views/doctor_dashboard/screens/doctor_profile.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,7 +42,7 @@ class ReVerieApp extends StatelessWidget {
           scaffoldBackgroundColor: Colors.white,
         ),
         // home: const SplashGate(),
-        home: const DoctorMatchEntry(),
+        home: const DoctorProfileScreen(),
       ),
     );
   }
