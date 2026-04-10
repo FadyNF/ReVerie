@@ -1,24 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:reverie/views/auth/auth_ui.dart';
 import 'package:reverie/views/doctor_match/widgets/step_progress_bar.dart';
-
 import 'package:reverie/views/doctor_match/screens/recommended_doctors_screen.dart';
-import 'package:reverie/views/doctor_match/models/recommended_doctor.dart';
 
-// will Replace this later with a real implementation (geolocator / method channel).
-// For now it returns a dummy location string so the UI flow works.
 class LocationService {
   Future<String?> requestAndGetLocationLabel() async {
-    // TODO (backend/infra later):
-    // - ask permission
-    // - get coordinates
-    // - reverse geocode to "City, Country"
     await Future.delayed(const Duration(milliseconds: 700));
-
-    // Return null to simulate "permission denied" or failure.
-    // return null;
-
-    // if success:
     return 'Cairo, Egypt';
   }
 }
@@ -31,19 +18,16 @@ class MeetingLocationScreen extends StatefulWidget {
 }
 
 class _MeetingLocationScreenState extends State<MeetingLocationScreen> {
-  final _cityController = TextEditingController();
-  final _locationService = LocationService();
+  final TextEditingController _cityController = TextEditingController();
+  final LocationService _locationService = LocationService();
 
   bool _useMyLocation = false;
   bool _isFetchingLocation = false;
-
-  /// If not null -> we hide the two options and show this instead
   String? _detectedLocationLabel;
 
   bool get _hasTypedCity => _cityController.text.trim().isNotEmpty;
 
   bool get _canContinue {
-    // Enable only if we have a detected location OR typed city.
     if (_detectedLocationLabel != null) return true;
     return _hasTypedCity;
   }
@@ -61,7 +45,6 @@ class _MeetingLocationScreenState extends State<MeetingLocationScreen> {
   }
 
   Future<void> _onUseMyLocationToggle(bool value) async {
-    // If user unchecks, reset location state but keep any typed city.
     if (!value) {
       setState(() {
         _useMyLocation = false;
@@ -71,7 +54,6 @@ class _MeetingLocationScreenState extends State<MeetingLocationScreen> {
       return;
     }
 
-    // If they check it, we attempt to fetch location and then replace UI.
     setState(() {
       _useMyLocation = true;
       _isFetchingLocation = true;
@@ -83,7 +65,6 @@ class _MeetingLocationScreenState extends State<MeetingLocationScreen> {
     if (!mounted) return;
 
     if (label == null) {
-      // Permission denied / failure -> revert toggle and show message
       setState(() {
         _useMyLocation = false;
         _isFetchingLocation = false;
@@ -100,11 +81,9 @@ class _MeetingLocationScreenState extends State<MeetingLocationScreen> {
       return;
     }
 
-    // Success: show detected location and hide the two options.
     setState(() {
       _isFetchingLocation = false;
       _detectedLocationLabel = label;
-      //clear typed city since location takes over (will remove if we want both)
       _cityController.clear();
     });
   }
@@ -117,11 +96,25 @@ class _MeetingLocationScreenState extends State<MeetingLocationScreen> {
     });
   }
 
+  void _goToRecommendedDoctors() {
+    final payload = {
+      'location_source': _detectedLocationLabel != null ? 'gps' : 'manual',
+      'location_label': _detectedLocationLabel,
+      'city_query': _detectedLocationLabel == null
+          ? _cityController.text.trim()
+          : null,
+    };
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RecommendedDoctorsScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -140,18 +133,14 @@ class _MeetingLocationScreenState extends State<MeetingLocationScreen> {
         ),
         centerTitle: false,
       ),
-
       body: SafeArea(
         child: Column(
           children: [
-            // Step 3 of 4
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: StepProgressBar(currentStep: 3, totalSteps: 4),
             ),
-
             const SizedBox(height: 18),
-
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -178,7 +167,6 @@ class _MeetingLocationScreenState extends State<MeetingLocationScreen> {
                     ),
                     const SizedBox(height: 18),
 
-                    // If we have detected location -> show only this section
                     if (_detectedLocationLabel != null) ...[
                       Container(
                         width: double.infinity,
@@ -222,7 +210,6 @@ class _MeetingLocationScreenState extends State<MeetingLocationScreen> {
                       ),
                       const SizedBox(height: 14),
                     ] else ...[
-                      // Use my location row (mockup style)
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(
@@ -261,9 +248,7 @@ class _MeetingLocationScreenState extends State<MeetingLocationScreen> {
                           ],
                         ),
                       ),
-
                       const SizedBox(height: 16),
-
                       Center(
                         child: Text(
                           'or',
@@ -274,9 +259,7 @@ class _MeetingLocationScreenState extends State<MeetingLocationScreen> {
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 16),
-
                       TextField(
                         controller: _cityController,
                         decoration: InputDecoration(
@@ -305,11 +288,9 @@ class _MeetingLocationScreenState extends State<MeetingLocationScreen> {
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 14),
                     ],
 
-                    // Info box (same in both states)
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(14),
@@ -332,64 +313,13 @@ class _MeetingLocationScreenState extends State<MeetingLocationScreen> {
                 ),
               ),
             ),
-
-            // Bottom button
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
               child: SizedBox(
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: _canContinue
-                      ? () {
-                          // backend-ready payload:
-                          final payload = {
-                            'location_source': _detectedLocationLabel != null
-                                ? 'gps'
-                                : 'manual',
-                            'location_label': _detectedLocationLabel,
-                            'city_query': _detectedLocationLabel == null
-                                ? _cityController.text.trim()
-                                : null,
-                          };
-
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => RecommendedDoctorsScreen(
-                                doctors: const [
-                                  RecommendedDoctor(
-                                    id: 'd1',
-                                    initials: 'DSC',
-                                    name: 'Dr. Sarah Chen',
-                                    specialty: 'Cognitive Specialist',
-                                    clinic: 'Memory Care Center',
-                                    rating: 4.9,
-                                    reasons: [
-                                      'Matches your availability',
-                                      'Calm approach',
-                                      'Arabic',
-                                    ],
-                                  ),
-                                  RecommendedDoctor(
-                                    id: 'd2',
-                                    initials: 'DMF',
-                                    name: 'Dr. Michael Foster',
-                                    specialty: 'Memory Care Specialist',
-                                    clinic: 'Sunnyvale Clinic',
-                                    rating: 4.8,
-                                    reasons: [
-                                      'Speaks Arabic',
-                                      'Video sessions',
-                                      'Nearby',
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }
-                      : null,
+                  onPressed: _canContinue ? _goToRecommendedDoctors : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AuthUI.primaryBlue,
                     disabledBackgroundColor: AuthUI.primaryBlue.withOpacity(

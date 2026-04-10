@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:reverie/views/auth/auth_ui.dart';
 import 'package:reverie/views/doctor_match/widgets/step_progress_bar.dart';
-
 import 'package:reverie/views/doctor_match/screens/meeting_location_screen.dart';
 
 class _Choice {
-  final String id; // backend id
-  final String label; // UI label
+  final String id;
+  final String label;
+
   const _Choice(this.id, this.label);
 }
 
@@ -18,10 +18,7 @@ class MeetingTimeScreen extends StatefulWidget {
 }
 
 class _MeetingTimeScreenState extends State<MeetingTimeScreen> {
-  // Single-choice (required)
   String? _selectedTimeOfDayId;
-
-  // Multi-choice (required at least one)
   final Set<String> _selectedDayIds = {};
 
   final List<_Choice> _timeOfDay = const [
@@ -55,6 +52,18 @@ class _MeetingTimeScreenState extends State<MeetingTimeScreen> {
         _selectedDayIds.add(id);
       }
     });
+  }
+
+  void _goToLocationScreen() {
+    final payload = {
+      'time_of_day': _selectedTimeOfDayId,
+      'days': _selectedDayIds.toList(),
+    };
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const MeetingLocationScreen()),
+    );
   }
 
   Widget _pill({
@@ -118,7 +127,6 @@ class _MeetingTimeScreenState extends State<MeetingTimeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -137,18 +145,14 @@ class _MeetingTimeScreenState extends State<MeetingTimeScreen> {
         ),
         centerTitle: false,
       ),
-
       body: SafeArea(
         child: Column(
           children: [
-            // Step 2 of 4
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: StepProgressBar(currentStep: 2, totalSteps: 4),
             ),
-
             const SizedBox(height: 18),
-
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -173,9 +177,7 @@ class _MeetingTimeScreenState extends State<MeetingTimeScreen> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-
                     const SizedBox(height: 18),
-
                     Text(
                       'Time of day',
                       style: TextStyle(
@@ -185,7 +187,6 @@ class _MeetingTimeScreenState extends State<MeetingTimeScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-
                     Wrap(
                       spacing: 10,
                       runSpacing: 10,
@@ -198,9 +199,7 @@ class _MeetingTimeScreenState extends State<MeetingTimeScreen> {
                         );
                       }).toList(),
                     ),
-
                     const SizedBox(height: 18),
-
                     Text(
                       'Days of week',
                       style: TextStyle(
@@ -210,7 +209,6 @@ class _MeetingTimeScreenState extends State<MeetingTimeScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-
                     GridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -231,30 +229,13 @@ class _MeetingTimeScreenState extends State<MeetingTimeScreen> {
                 ),
               ),
             ),
-
-            // Continue button (disabled until both groups have at least 1 selected)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
               child: SizedBox(
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: _canContinue
-                      ? () {
-                          // backend-ready payload:
-                          final payload = {
-                            'time_of_day': _selectedTimeOfDayId, // String
-                            'days': _selectedDayIds.toList(), // List<String>
-                          };
-
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const MeetingLocationScreen(),
-                            ),
-                          );
-                        }
-                      : null,
+                  onPressed: _canContinue ? _goToLocationScreen : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AuthUI.primaryBlue,
                     disabledBackgroundColor: AuthUI.primaryBlue.withOpacity(

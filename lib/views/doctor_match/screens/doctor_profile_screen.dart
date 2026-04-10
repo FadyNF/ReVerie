@@ -1,16 +1,89 @@
 import 'package:flutter/material.dart';
 import 'package:reverie/views/auth/auth_ui.dart';
+import 'package:reverie/views/common/current_user_service.dart';
 import 'package:reverie/views/doctor_match/models/doctor_profile_model.dart';
 import 'package:reverie/views/doctor_match/models/recommended_doctor.dart';
+import 'package:reverie/views/doctor_match/providers/admission_provider.dart';
 import 'package:reverie/views/doctor_match/screens/waiting_approval_screen.dart';
 
-class DoctorProfileScreen extends StatelessWidget {
+class DoctorProfileScreen extends StatefulWidget {
   final DoctorProfileModel doctor;
 
   const DoctorProfileScreen({super.key, required this.doctor});
 
   @override
+  State<DoctorProfileScreen> createState() => _DoctorProfileScreenState();
+}
+
+class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
+  final AdmissionProviderService _admissionProvider =
+      AdmissionProviderService();
+
+  bool _isSubmitting = false;
+
+  Future<void> _applyToDoctor() async {
+    if (_isSubmitting) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final consumerUserId = CurrentUserService.requireUserId();
+      final rec = _toRecommended(widget.doctor);
+
+      debugPrint('consumerUserId = $consumerUserId');
+      debugPrint('doctorUserId = ${widget.doctor.id}');
+
+      final request = await _admissionProvider.createRequest(
+        consumerUserId: consumerUserId,
+        doctorUserId: widget.doctor.id,
+      );
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => WaitingApprovalScreen(
+            doctor: rec,
+            requestId: request.id,
+            doctorUserId: request.doctorUserId,
+            consumerUserId: request.consumerUserId,
+            status: request.status,
+          ),
+        ),
+      );
+    } catch (e, st) {
+      debugPrint('CREATE REQUEST ERROR: $e');
+      debugPrintStack(stackTrace: st);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Could not send request: $e')));
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  RecommendedDoctor _toRecommended(DoctorProfileModel d) {
+    return RecommendedDoctor(
+      id: d.id,
+      initials: d.initials,
+      name: d.name,
+      specialty: d.specialty,
+      clinic: d.clinic,
+      rating: d.rating,
+      reasons: const [],
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final doctor = widget.doctor;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
@@ -42,8 +115,6 @@ class DoctorProfileScreen extends StatelessWidget {
                   children: [
                     _HeaderCard(doctor: doctor),
                     const SizedBox(height: 14),
-
-                    // About
                     const _SectionTitle(title: 'About'),
                     const SizedBox(height: 8),
                     Text(
@@ -54,10 +125,7 @@ class DoctorProfileScreen extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-
                     const SizedBox(height: 18),
-
-                    // Education
                     const _SectionTitle(title: 'Education'),
                     const SizedBox(height: 10),
                     if (doctor.education.isEmpty)
@@ -79,10 +147,7 @@ class DoctorProfileScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-
                     const SizedBox(height: 10),
-
-                    // Languages
                     const _SectionTitle(title: 'Languages'),
                     const SizedBox(height: 10),
                     if (doctor.languages.isEmpty)
@@ -101,10 +166,7 @@ class DoctorProfileScreen extends StatelessWidget {
                             .map((lang) => _Chip(text: lang))
                             .toList(),
                       ),
-
                     const SizedBox(height: 18),
-
-                    // Availability
                     const _SectionTitle(title: 'Availability'),
                     const SizedBox(height: 10),
                     if (doctor.availability.isEmpty)
@@ -122,10 +184,7 @@ class DoctorProfileScreen extends StatelessWidget {
                           child: _AvailabilityRow(day: e.key, time: e.value),
                         ),
                       ),
-
                     const SizedBox(height: 18),
-
-                    // Tags (optional)
                     if (doctor.tags.isNotEmpty) ...[
                       const _SectionTitle(title: 'Highlights'),
                       const SizedBox(height: 10),
@@ -142,30 +201,20 @@ class DoctorProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-
-            // Bottom Apply button
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
               child: SizedBox(
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: () {
-                    final rec = _toRecommended(doctor);
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => WaitingApprovalScreen(
-                          doctor: rec,
-                          stage: AppointmentStage.requestSent,
-                        ),
-                      ),
-                    );
-                  },
+                  onPressed: _isSubmitting ? null : _applyToDoctor,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AuthUI.primaryBlue,
+                    disabledBackgroundColor: AuthUI.primaryBlue.withOpacity(
+                      0.35,
+                    ),
                     foregroundColor: Colors.white,
+                    disabledForegroundColor: Colors.white.withOpacity(0.7),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
@@ -175,25 +224,19 @@ class DoctorProfileScreen extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  child: const Text('Apply to Doctor'),
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Apply to Doctor'),
                 ),
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  RecommendedDoctor _toRecommended(DoctorProfileModel d) {
-    return RecommendedDoctor(
-      id: d.id,
-      initials: d.initials,
-      name: d.name,
-      specialty: d.specialty,
-      clinic: d.clinic,
-      rating: d.rating,
-      reasons: const [], // not needed here
     );
   }
 }
@@ -268,7 +311,6 @@ class _HeaderCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

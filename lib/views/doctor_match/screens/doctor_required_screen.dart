@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:reverie/views/doctor_match/models/doctor_profile_model.dart';
 import 'package:reverie/views/doctor_match/screens/doctors_list_screen.dart';
 import '../../auth/auth_ui.dart';
-
 import 'package:reverie/views/doctor_match/screens/enter_doctor_code_screen.dart';
 import 'package:reverie/views/doctor_match/screens/onboarding_questions_screen.dart';
 
@@ -20,7 +18,6 @@ class DoctorRequiredScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 10),
 
-              // Top-left logo text
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -35,7 +32,6 @@ class DoctorRequiredScreen extends StatelessWidget {
 
               const SizedBox(height: 28),
 
-              // Lock icon in a soft circle
               Container(
                 width: 72,
                 height: 72,
@@ -76,7 +72,6 @@ class DoctorRequiredScreen extends StatelessWidget {
 
               const SizedBox(height: 40),
 
-              // Button cards
               _ActionCard(
                 background: AuthUI.primaryBlue,
                 icon: Icons.key,
@@ -116,18 +111,13 @@ class DoctorRequiredScreen extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => FindDoctorScreen(
-                        allDoctors: [DoctorProfileModel.dummySarah()],
-                      ),
-                    ),
+                    MaterialPageRoute(builder: (_) => const FindDoctorScreen()),
                   );
                 },
               ),
 
               const Spacer(),
 
-              // Bottom info pill
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
@@ -238,7 +228,6 @@ class _BrowseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      //color: Colors.white,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),

@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:reverie/views/auth/auth_ui.dart';
 import 'package:reverie/views/doctor_match/models/doctor_profile_model.dart';
+import 'package:reverie/views/doctor_match/providers/doctor_provider.dart';
 import 'package:reverie/views/doctor_match/screens/doctor_profile_screen.dart';
 
 class FindDoctorScreen extends StatefulWidget {
-  /// Backend later:
-  /// - pass fetched list, or
-  /// - fetch inside via repository/provider
-  final List<DoctorProfileModel> allDoctors;
-
-  const FindDoctorScreen({super.key, required this.allDoctors});
+  const FindDoctorScreen({super.key});
 
   @override
   State<FindDoctorScreen> createState() => _FindDoctorScreenState();
 }
 
 class _FindDoctorScreenState extends State<FindDoctorScreen> {
-  final _search = TextEditingController();
+  final DoctorProviderService _doctorProvider = DoctorProviderService();
+  late Future<List<DoctorProfileModel>> _doctorsFuture;
+  final TextEditingController _search = TextEditingController();
 
   bool filterAvailableNow = false;
   bool filterArabic = false;
@@ -29,6 +27,7 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
   void initState() {
     super.initState();
     _search.addListener(() => setState(() {}));
+    _doctorsFuture = _doctorProvider.getAllDoctorProfiles();
   }
 
   @override
@@ -37,10 +36,10 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
     super.dispose();
   }
 
-  List<DoctorProfileModel> get _filtered {
+  List<DoctorProfileModel> _filteredFrom(List<DoctorProfileModel> source) {
     final q = _search.text.trim().toLowerCase();
 
-    var list = widget.allDoctors.where((d) {
+    var list = source.where((d) {
       final matchesQuery =
           q.isEmpty ||
           d.name.toLowerCase().contains(q) ||
@@ -49,18 +48,17 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
 
       if (!matchesQuery) return false;
 
-      // These are frontend-only flags (backend later)
       if (filterAvailableNow && !_isAvailableNow(d)) return false;
       if (filterArabic &&
-          !d.languages.map((e) => e.toLowerCase()).contains('arabic'))
+          !d.languages.map((e) => e.toLowerCase()).contains('arabic')) {
         return false;
+      }
       if (filterVideo && !_supportsVideo(d)) return false;
       if (filterNearby && !_isNearby(d)) return false;
 
       return true;
     }).toList();
 
-    // Sorting
     switch (sortMode) {
       case SortMode.ratingHigh:
         list.sort((a, b) => b.rating.compareTo(a.rating));
@@ -75,27 +73,20 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
     return list;
   }
 
-  // ---- Dummy flags for now (replace with backend fields later) ----
   bool _isAvailableNow(DoctorProfileModel d) {
-    // Dummy logic: if availability map not empty => "available"
     return d.availability.isNotEmpty;
   }
 
   bool _supportsVideo(DoctorProfileModel d) {
-    // Dummy logic: if tags contains "Video"
     return d.tags.map((e) => e.toLowerCase()).contains('video');
   }
 
   bool _isNearby(DoctorProfileModel d) {
-    // Needs location later; for now fake it
     return d.tags.map((e) => e.toLowerCase()).contains('nearby');
   }
-  // ---------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
-    final list = _filtered;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
@@ -123,7 +114,6 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
               child: _SearchBar(controller: _search),
             ),
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
@@ -142,9 +132,7 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
                 ],
               ),
             ),
-
             const SizedBox(height: 10),
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: SingleChildScrollView(
@@ -180,24 +168,42 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 12),
-
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                itemCount: list.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, i) {
-                  final d = list[i];
-                  return _DoctorRowCard(
-                    doctor: d,
-                    onViewProfile: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => DoctorProfileScreen(doctor: d),
-                        ),
+              child: FutureBuilder<List<DoctorProfileModel>>(
+                future: _doctorsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return const Center(child: Text('Failed to load doctors'));
+                  }
+
+                  final source = snapshot.data ?? [];
+                  final list = _filteredFrom(source);
+
+                  if (list.isEmpty) {
+                    return const Center(child: Text('No doctors found'));
+                  }
+
+                  return ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    itemCount: list.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, i) {
+                      final d = list[i];
+                      return _DoctorRowCard(
+                        doctor: d,
+                        onViewProfile: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => DoctorProfileScreen(doctor: d),
+                            ),
+                          );
+                        },
                       );
                     },
                   );
@@ -336,7 +342,7 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
-                            setState(() {}); // apply filters to list
+                            setState(() {});
                             Navigator.pop(context);
                           },
                           style: ElevatedButton.styleFrom(

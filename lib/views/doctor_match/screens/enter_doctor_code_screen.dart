@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:reverie/views/auth/auth_ui.dart';
-import 'package:reverie/views/doctor_match/models/doctor_profile_model.dart';
+import 'package:reverie/views/doctor_match/providers/doctor_provider.dart';
 import 'package:reverie/views/doctor_match/screens/doctor_profile_screen.dart';
 
 class EnterDoctorCodeScreen extends StatefulWidget {
@@ -11,8 +11,9 @@ class EnterDoctorCodeScreen extends StatefulWidget {
 }
 
 class _EnterDoctorCodeScreenState extends State<EnterDoctorCodeScreen> {
-  final _controller = TextEditingController();
-  final _focusNode = FocusNode();
+  final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  final DoctorProviderService _doctorProvider = DoctorProviderService();
 
   String? _errorText;
   bool _checking = false;
@@ -25,13 +26,13 @@ class _EnterDoctorCodeScreenState extends State<EnterDoctorCodeScreen> {
   @override
   void initState() {
     super.initState();
+
     _controller.addListener(() {
-      // Live validation (format only). Backend validation happens on Continue.
       final text = _controller.text.trim();
 
       String? nextError;
       if (text.isEmpty) {
-        nextError = null; // no error while empty, just disabled button
+        nextError = null;
       } else if (!_codeRegex.hasMatch(text)) {
         nextError = 'Enter a valid doctor code';
       } else {
@@ -41,7 +42,6 @@ class _EnterDoctorCodeScreenState extends State<EnterDoctorCodeScreen> {
       if (nextError != _errorText) {
         setState(() => _errorText = nextError);
       } else {
-        // Still need rebuild for button enabled state
         setState(() {});
       }
     });
@@ -59,7 +59,6 @@ class _EnterDoctorCodeScreenState extends State<EnterDoctorCodeScreen> {
 
     final code = _controller.text.trim();
 
-    // Guard: format
     if (!_codeRegex.hasMatch(code)) {
       setState(() => _errorText = 'Enter a valid doctor code');
       return;
@@ -71,25 +70,26 @@ class _EnterDoctorCodeScreenState extends State<EnterDoctorCodeScreen> {
     });
 
     try {
-      // Later will replace this with Supabase / API call
-      final exists = await DoctorCodeRepository.verifyDoctorCode(code);
+      final doctor = await _doctorProvider.getDoctorProfileByInviteCode(code);
 
       if (!mounted) return;
 
-      if (!exists) {
+      if (doctor == null) {
         setState(() => _errorText = 'Enter a valid doctor code');
         return;
       }
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (_) =>
-              DoctorProfileScreen(doctor: DoctorProfileModel.dummySarah()),
-        ),
+        MaterialPageRoute(builder: (_) => DoctorProfileScreen(doctor: doctor)),
       );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _errorText = 'Something went wrong. Please try again.');
     } finally {
-      if (mounted) setState(() => _checking = false);
+      if (mounted) {
+        setState(() => _checking = false);
+      }
     }
   }
 
@@ -126,7 +126,6 @@ class _EnterDoctorCodeScreenState extends State<EnterDoctorCodeScreen> {
               ),
               const SizedBox(height: 22),
 
-              // Input
               Container(
                 decoration: BoxDecoration(
                   color: const Color(0xFFF7F8FA),
@@ -162,7 +161,6 @@ class _EnterDoctorCodeScreenState extends State<EnterDoctorCodeScreen> {
                     ),
                   ),
                   onChanged: (v) {
-                    // Force uppercase as user types
                     final upper = v.toUpperCase();
                     if (upper != v) {
                       final sel = _controller.selection;
@@ -177,7 +175,6 @@ class _EnterDoctorCodeScreenState extends State<EnterDoctorCodeScreen> {
 
               const SizedBox(height: 10),
 
-              // Error message (red)
               if (_errorText != null) ...[
                 Text(
                   _errorText!,
@@ -192,7 +189,6 @@ class _EnterDoctorCodeScreenState extends State<EnterDoctorCodeScreen> {
                 const SizedBox(height: 26),
               ],
 
-              // Continue button
               SizedBox(
                 width: double.infinity,
                 height: 54,
@@ -230,23 +226,5 @@ class _EnterDoctorCodeScreenState extends State<EnterDoctorCodeScreen> {
         ),
       ),
     );
-  }
-}
-
-/// Later will replace verifyDoctorCode with a Supabase call.
-/// For now it always returns true so UI can proceed.
-class DoctorCodeRepository {
-  static Future<bool> verifyDoctorCode(String code) async {
-    // TODO: integrate backend (Supabase) here.
-    // Example later:
-    // final res = await Supabase.instance.client
-    //   .from('doctor_codes')
-    //   .select('code')
-    //   .eq('code', code)
-    //   .maybeSingle();
-    // return res != null;
-
-    await Future.delayed(const Duration(milliseconds: 250));
-    return true;
   }
 }

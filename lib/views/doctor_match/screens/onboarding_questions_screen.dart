@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:reverie/views/auth/auth_ui.dart';
 import 'package:reverie/views/doctor_match/widgets/step_progress_bar.dart';
-
 import 'package:reverie/views/doctor_match/screens/meeting_time_screen.dart';
 
 class OnboardingQuestionsScreen extends StatefulWidget {
@@ -15,7 +14,6 @@ class OnboardingQuestionsScreen extends StatefulWidget {
 class _OnboardingQuestionsScreenState extends State<OnboardingQuestionsScreen> {
   final Set<String> _selected = {};
 
-  // Keep these labels EXACTLY as your mockup
   final List<String> _options = const [
     'Fast appointment',
     'Calm communication',
@@ -41,11 +39,19 @@ class _OnboardingQuestionsScreenState extends State<OnboardingQuestionsScreen> {
     });
   }
 
+  void _goToMeetingTimeScreen() {
+    final payload = {'preferences': _selected.toList()};
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const MeetingTimeScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -64,18 +70,14 @@ class _OnboardingQuestionsScreenState extends State<OnboardingQuestionsScreen> {
         ),
         centerTitle: false,
       ),
-
       body: SafeArea(
         child: Column(
           children: [
-            // Top progress bar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: StepProgressBar(currentStep: 1, totalSteps: 4),
             ),
-
             const SizedBox(height: 18),
-
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -101,7 +103,6 @@ class _OnboardingQuestionsScreenState extends State<OnboardingQuestionsScreen> {
                       ),
                     ),
                     const SizedBox(height: 18),
-
                     Wrap(
                       spacing: 10,
                       runSpacing: 10,
@@ -140,24 +141,13 @@ class _OnboardingQuestionsScreenState extends State<OnboardingQuestionsScreen> {
                 ),
               ),
             ),
-
-            // Bottom continue button
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
               child: SizedBox(
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: _canContinue
-                      ? () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const MeetingTimeScreen(),
-                            ),
-                          );
-                        }
-                      : null,
+                  onPressed: _canContinue ? _goToMeetingTimeScreen : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AuthUI.primaryBlue,
                     disabledBackgroundColor: AuthUI.primaryBlue.withOpacity(

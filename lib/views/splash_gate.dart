@@ -48,3 +48,61 @@ class _SplashGateState extends State<SplashGate> {
     return const SplashScreen();
   }
 }
+
+
+
+
+// import 'package:flutter/material.dart';
+// import 'package:provider/provider.dart';
+
+// import '../providers/auth_provider.dart';
+// import 'auth_landing_screen.dart';
+// import 'doctor_match/entry_page.dart';
+// import 'splash_screen.dart';
+
+// class SplashGate extends StatefulWidget {
+//   const SplashGate({super.key});
+
+//   @override
+//   State<SplashGate> createState() => _SplashGateState();
+// }
+
+// class _SplashGateState extends State<SplashGate> {
+//   @override
+//   void initState() {
+//     super.initState();
+//     _boot();
+//   }
+
+//   Future<void> _boot() async {
+//     await context.read<AuthProvider>().loadSession();
+
+//     if (!mounted) return;
+
+//     final auth = context.read<AuthProvider>();
+//     final user = auth.currentUser;
+
+//     if (user == null) {
+//       Navigator.of(context).pushReplacement(
+//         MaterialPageRoute(builder: (_) => const AuthLandingScreen()),
+//       );
+//       return;
+//     }
+
+//     if (user.role == 'consumer') {
+//       Navigator.of(context).pushReplacement(
+//         MaterialPageRoute(builder: (_) => const DoctorMatchEntry()),
+//       );
+//       return;
+//     }
+
+//     Navigator.of(context).pushReplacement(
+//       MaterialPageRoute(builder: (_) => const AuthLandingScreen()),
+//     );
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return const SplashScreen();
+//   }
+// }
